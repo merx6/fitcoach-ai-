@@ -152,6 +152,11 @@ class GarminAPIHandler(BaseHTTPRequestHandler):
                         print(f"[SYNC] Trying activity date: {recent_data_date}")
                         recent_summary = client.get_user_summary(recent_data_date)
 
+            # 获取设备信息
+            print("[SYNC] Getting devices...")
+            devices = client.get_devices()
+            print(f"[SYNC] Devices: {len(devices) if devices else 0}")
+
             # 提取关键数据
             print(f"[SYNC] Extracting data from {recent_data_date}")
 
@@ -191,6 +196,7 @@ class GarminAPIHandler(BaseHTTPRequestHandler):
                     "name": user_profile.get("fullName", "Unknown"),
                     "displayName": user_profile.get("displayName", "Unknown"),
                 },
+                "devices": devices if devices else [],
                 "data": {
                     "hrv": hrv_value,
                     "sleepScore": sleep_score,

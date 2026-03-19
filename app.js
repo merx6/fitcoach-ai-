@@ -32,6 +32,7 @@ const UserProfile = {
 
 // Garmin 同步数据
 const GarminData = {
+  devices: [],  // 设备列表
   hrv: null,
   sleepScore: null,
   stressLevel: null,
@@ -779,6 +780,9 @@ async function syncGarmin() {
     const data = await response.json();
 
     if (data.success) {
+      // 更新设备信息
+      if (data.devices) GarminData.devices = data.devices;
+
       // 更新 GarminData
       if (data.data.hrv !== null) GarminData.hrv = data.data.hrv;
       if (data.data.sleepScore !== null) GarminData.sleepScore = data.data.sleepScore;
@@ -917,6 +921,20 @@ function updateWeeklyProgress() {
 }
 
 function updateGarminUI() {
+  // 更新设备信息
+  const deviceNameEl = document.getElementById('deviceName');
+  const deviceModelEl = document.getElementById('deviceModel');
+
+  if (deviceNameEl && GarminData.devices && GarminData.devices.length > 0) {
+    const device = GarminData.devices[0];
+    deviceNameEl.textContent = device.get('deviceDisplayName', device.get('productDisplayName', 'Garmin 设备'));
+    const serialNumber = device.get('serialNumber', '--');
+    deviceModelEl.textContent = `序列号：${serialNumber}`;
+  } else if (deviceNameEl) {
+    deviceNameEl.textContent = 'Garmin 设备';
+    deviceModelEl.textContent = '序列号：--';
+  }
+
   // 更新 Garmin 页面的数据显示
   const hrvEl = document.getElementById('garminHRV');
   const sleepEl = document.getElementById('garminSleep');
