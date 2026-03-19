@@ -743,23 +743,136 @@ function initRadar() {
 }
 
 // ─────────────────────────────────────────
-// 9. Garmin 同步模拟
+// 9. Garmin 同步（真实 API）
 // ─────────────────────────────────────────
-function syncGarmin() {
+
+// Garmin API 基础 URL
+// 注意：Vercel 部署到 GitHub Pages 后，会因跨域问题无法直接访问后端 API
+// 推荐的解决方案：
+// 1. 将前端也部署到 Vercel（与 API 同域）
+// 2. 或者配置 Vercel API 使用 CORS 允许 GitHub Pages 访问
+const GARMIN_API_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:3000'  // 本地开发：连接本地 Python 服务器
+  : 'https://fitcoach-garmin-api.vercel.app'; // 生产环境：连接 Vercel API
+
+async function syncGarmin() {
   const btn = document.querySelector('.btn-sync');
   if (btn) {
     btn.innerHTML = '<svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> 同步中...';
     btn.disabled = true;
   }
 
-  setTimeout(() => {
+  try {
+    const response = await fetch(`${GARMIN_API_BASE}/api/garmin/sync`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // 更新 GarminData
+      if (data.data.hrv !== null) GarminData.hrv = data.data.hrv;
+      if (data.data.sleepScore !== null) GarminData.sleepScore = data.data.sleepScore;
+      if (data.data.bodyBattery !== null) GarminData.bodyBattery = data.data.bodyBattery;
+      if (data.data.stressLevel !== null) GarminData.stressLevel = data.data.stressLevel;
+
+      GarminData.lastSync = new Date(data.lastSync);
+
+      // 更新 UI 显示
+      updateGarminUI();
+      showToast(`✓ Garmin 数据同步完成！更新了 ${data.data.activitiesCount} 条活动记录`);
+    } else {
+      throw new Error(data.error || '同步失败');
+    }
+
+  } catch (error) {
+    console.error('Garmin 同步失败:', error);
+    showToast('✗ 同步失败：' + error.message + ' (请检查后端服务是否启动)');
+  } finally {
     if (btn) {
       btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> 立即同步';
       btn.disabled = false;
     }
-    GarminData.lastSync = new Date();
-    showToast('✓ Garmin 数据同步完成！HRV、睡眠、活动记录已更新');
-  }, 2500);
+  }
+}
+
+function updateGarminUI() {
+  // 更新 Garmin 页面的数据显示
+  const hrvEl = document.getElementById('garminHRV');
+  const sleepEl = document.getElementById('garminSleep');
+  const batteryEl = document.getElementById('garminBattery');
+  const stressEl = document.getElementById('garminStress');
+  const lastSyncEl = document.getElementById('lastSyncTime');
+
+  // 更新数值
+  if (hrvEl) hrvEl.textContent = GarminData.hrv + ' ms';
+  if (sleepEl) sleepEl.textContent = GarminData.sleepScore + ' 分';
+  if (batteryEl) batteryEl.textContent = GarminData.bodyBattery + '%';
+  if (stressEl) stressEl.textContent = GarminData.stressLevel;
+  if (lastSyncEl) lastSyncEl.textContent = formatLastSync(GarminData.lastSync);
+
+  // 更新状态标签和颜色
+  updateStatusElement('hrvStatus', GarminData.hrv, {
+    good: GarminData.hrv >= 50,
+    ok: GarminData.hrv >= 45,
+    warn: GarminData.hrv < 45,
+    labels: { good: '优秀', ok: '良好', warn: '偏低' }
+  });
+
+  updateStatusElement('sleepStatus', GarminData.sleepScore, {
+    good: GarminData.sleepScore >= 80,
+    ok: GarminData.sleepScore >= 65,
+    warn: GarminData.sleepScore < 65,
+    labels: { good: '充足', ok: '一般', warn: '不足' }
+  });
+
+  updateStatusElement('batteryStatus', GarminData.bodyBattery, {
+    good: GarminData.bodyBattery >= 75,
+    ok: GarminData.bodyBattery >= 50,
+    warn: GarminData.bodyBattery < 50,
+    labels: { good: '充沛', ok: '尚可', warn: '不足' }
+  });
+
+  updateStatusElement('stressStatus', GarminData.stressLevel, {
+    good: GarminData.stressLevel <= 25,
+    ok: GarminData.stressLevel <= 50,
+    warn: GarminData.stressLevel > 50,
+    labels: { good: '低压', ok: '适中', warn: '高压' }
+  });
+}
+
+function updateStatusElement(elementId, value, thresholds) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+
+  // 移除所有状态类
+  el.classList.remove('good', 'ok', 'warn');
+
+  // 添加对应的类
+  if (thresholds.good) {
+    el.classList.add('good');
+    el.textContent = thresholds.labels.good;
+  } else if (thresholds.ok) {
+    el.classList.add('ok');
+    el.textContent = thresholds.labels.ok;
+  } else {
+    el.classList.add('warn');
+    el.textContent = thresholds.labels.warn;
+  }
+}
+
+function formatLastSync(date) {
+  if (!date) return '从未同步';
+  const now = new Date();
+  const diff = Math.floor((now - date) / 1000); // 秒
+
+  if (diff < 60) return '刚刚';
+  if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
+  return date.toLocaleDateString('zh-CN');
 }
 
 // ─────────────────────────────────────────
@@ -909,6 +1022,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 初始化健康档案表单
   setTimeout(() => fillProfileForm(), 50);
+
+  // 初始化 Garmin UI
+  setTimeout(() => updateGarminUI(), 50);
 
   // 渲染雷达图
   setTimeout(() => drawRadarChart(), 100);

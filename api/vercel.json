@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "garmin-api.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "garmin-api.py"
+    }
+  ],
+  "env": {
+    "GARMIN_EMAIL": "@garmin_email",
+    "GARMIN_PASSWORD": "@garmin_password"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "fitcoach-garmin-api",
+  "version": "1.0.0",
+  "description": "FitCoach AI - Garmin Data API Backend",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "vercel": "^37.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
