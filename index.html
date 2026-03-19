@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitCoach AI · 私人运动教练</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ====== MOBILE MENU TOGGLE ====== -->
+<button class="mobile-menu-toggle" onclick="toggleMobileMenu()" style="display:none;position:fixed;top:20px;left:20px;z-index:1000;background:var(--accent);border:none;border-radius:8px;width:40px;height:40px;cursor:pointer;">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<!-- ====== SIDEBAR NAV ====== -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" fill="url(#grad1)" />
+        <path d="M8 18l4-8 3 5 2-3 3 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs>
+          <linearGradient id="grad1" x1="0" y1="0" x2="28" y2="28">
+            <stop offset="0%" stop-color="#6366f1"/>
+            <stop offset="100%" stop-color="#06b6d4"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <span class="logo-text">FitCoach <em>AI</em></span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>总览</span>
+    </a>
+    <a class="nav-item" data-page="profile" onclick="navigate('profile')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span>健康档案</span>
+    </a>
+    <a class="nav-item" data-page="plan" onclick="navigate('plan')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+      <span>训练计划</span>
+    </a>
+    <a class="nav-item" data-page="today" onclick="navigate('today')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <span>今日训练</span>
+    </a>
+    <a class="nav-item" data-page="analysis" onclick="navigate('analysis')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+      <span>数据分析</span>
+    </a>
+    <a class="nav-item" data-page="garmin" onclick="navigate('garmin')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="5"/><circle cx="12" cy="12" r="3"/><path d="M12 6v1M12 17v1M7 12H6M18 12h-1"/></svg>
+      <span>Garmin 设备</span>
+    </a>
+    <a class="nav-item" data-page="ai-chat" onclick="navigate('ai-chat')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>AI 教练对话</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">张</div>
+    <div class="user-info">
+      <div class="user-name">张明</div>
+      <div class="user-level">中级运动员</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ====== MAIN CONTENT ====== -->
+<main class="main" id="main">
+
+  <!-- ===== DASHBOARD PAGE ===== -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div>
+        <h1>早上好，张明 👋</h1>
+        <p class="page-subtitle">今天是你的第 <strong>23</strong> 天训练，继续保持！</p>
+      </div>
+      <div class="header-actions">
+        <div class="date-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          2026年3月19日
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">847 <span>kcal</span></div>
+          <div class="stat-label">本周消耗</div>
+        </div>
+        <div class="stat-trend up">+12%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:linear-gradient(135deg,#06b6d4,#0284c7)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">4.2 <span>h</span></div>
+          <div class="stat-label">本周训练时长</div>
+        </div>
+        <div class="stat-trend up">+8%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">142 <span>bpm</span></div>
+          <div class="stat-label">平均心率</div>
+        </div>
+        <div class="stat-trend down">-3%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        </div>
+        <div class="stat-info">
+          <div class="stat-value">86 <span>分</span></div>
+          <div class="stat-label">恢复状态</div>
+        </div>
+        <div class="stat-trend up">良好</div>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="dashboard-grid">
+      <!-- Today's Plan -->
+      <div class="card today-plan-card">
+        <div class="card-header">
+          <h3>今日训练计划</h3>
+          <span class="badge badge-primary">进行中</span>
+        </div>
+        <div class="today-workout">
+          <div class="workout-type-icon running">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M13 4a1 1 0 1 0 2 0 1 1 0 0 0-2 0"/><path d="m7 21 2.5-5.5L12 18l2-4.5"/><path d="m10.5 10.5 1.5 3 3.5-3"/><path d="M6.5 16.5 9 14l1.5 1"/></svg>
+          </div>
+          <div class="workout-info">
+            <div class="workout-name">有氧跑步</div>
+            <div class="workout-meta">45 分钟 · 心率区间 130-150 bpm · 配速 5:30/km</div>
+          </div>
+          <button class="btn-start" onclick="navigate('today')">开始训练</button>
+        </div>
+
+        <div class="workout-zones">
+          <div class="zone-bar">
+            <div class="zone-label">热身 <span>10min</span></div>
+            <div class="zone-progress"><div class="zone-fill" style="width:100%;background:#10b981"></div></div>
+            <div class="zone-hr">120 bpm</div>
+          </div>
+          <div class="zone-bar">
+            <div class="zone-label">有氧 <span>25min</span></div>
+            <div class="zone-progress"><div class="zone-fill" style="width:55%;background:#6366f1"></div></div>
+            <div class="zone-hr">140 bpm</div>
+          </div>
+          <div class="zone-bar">
+            <div class="zone-label">放松 <span>10min</span></div>
+            <div class="zone-progress"><div class="zone-fill" style="width:0%;background:#06b6d4"></div></div>
+            <div class="zone-hr">115 bpm</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Advice -->
+      <div class="card ai-advice-card">
+        <div class="card-header">
+          <h3>AI 教练建议</h3>
+          <div class="ai-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            实时更新
+          </div>
+        </div>
+        <div class="ai-messages">
+          <div class="ai-msg">
+            <div class="ai-avatar">AI</div>
+            <div class="ai-bubble">
+              根据你昨天的跑步数据，心率恢复良好（HRV 54ms），今天可以保持原计划强度进行有氧训练。建议配速控制在 5:20-5:40/km。
+            </div>
+          </div>
+          <div class="ai-msg">
+            <div class="ai-avatar">AI</div>
+            <div class="ai-bubble">
+              ⚠️ 注意：近3天累计训练量偏高，今日训练后建议补充15-20分钟拉伸恢复，防止过度疲劳。
+            </div>
+          </div>
+          <div class="ai-msg">
+            <div class="ai-avatar">AI</div>
+            <div class="ai-bubble">
+              本周训练完成度 <strong>78%</strong>，明天计划休息日，后天进行骑行训练（60分钟）。
+            </div>
+          </div>
+        </div>
+        <div class="ai-input-row">
+          <input type="text" placeholder="问教练任何问题..." class="ai-input" id="dashboardAiInput" onkeydown="handleDashboardAiInput(event)" />
+          <button class="ai-send-btn" onclick="handleDashboardAiSend()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Weekly Progress -->
+      <div class="card weekly-card">
+        <div class="card-header">
+          <h3>本周训练完成情况</h3>
+        </div>
+        <div class="week-bars">
+          <div class="week-day">
+            <div class="week-bar-wrap">
+              <div class="week-bar" style="height:80%" data-type="跑步" data-val="40min"></div>
+            </div>
+            <div class="week-label">周一</div>
+            <div class="week-check done">✓</div>
+          </div>
+          <div class="week-day">
+            <div class="week-bar-wrap">
+              <div class="week-bar" style="height:60%" data-type="骑行" data-val="30min"></div>
+            </div>
+            <div class="week-label">周二</div>
+            <div class="week-check done">✓</div>
+          </div>
+          <div class="week-day">
+            <div class="week-bar-wrap">
+              <div class="week-bar rest-bar" style="height:20%"></div>
+            </div>
+            <div class="week-label">周三</div>
+            <div class="week-check rest">休</div>
+          </div>
+          <div class="week-day">
+            <div class="week-bar-wrap">
+              <div class="week-bar" style="height:90%" data-type="游泳" data-val="45min"></div>
+            </div>
+            <div class="week-label">周四</div>
+            <div class="week-check done">✓</div>
+          </div>
+          <div class="week-day today-bar">
+            <div class="week-bar-wrap">
+              <div class="week-bar active-bar" style="height:55%"></div>
+            </div>
+            <div class="week-label">今天</div>
+            <div class="week-check today">→</div>
+          </div>
+          <div class="week-day">
+            <div class="week-bar-wrap">
+              <div class="week-bar pending-bar" style="height:70%"></div>
+            </div>
+            <div class="week-label">周六</div>
+            <div class="week-check pending">-</div>
+          </div>
+          <div class="week-day">
+            <div class="week-bar-wrap">
+              <div class="week-bar rest-bar" style="height:10%"></div>
+            </div>
+            <div class="week-label">周日</div>
+            <div class="week-check rest">休</div>
+          </div>
+        </div>
+        <div class="week-summary">
+          <span>已完成 <strong>3</strong> 次</span>
+          <span>目标 <strong>5</strong> 次</span>
+          <span>完成率 <strong>60%</strong></span>
+        </div>
+      </div>
+
+      <!-- Body Status -->
+      <div class="card body-status-card">
+        <div class="card-header">
+          <h3>身体状态指数</h3>
+          <span class="text-muted">来自 Garmin</span>
+        </div>
+        <div class="body-metrics">
+          <div class="metric-ring">
+            <svg viewBox="0 0 80 80" width="80" height="80">
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#1e293b" stroke-width="8"/>
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#6366f1" stroke-width="8"
+                stroke-dasharray="172" stroke-dashoffset="34" stroke-linecap="round"
+                transform="rotate(-90 40 40)"/>
+            </svg>
+            <div class="ring-value">80%</div>
+            <div class="ring-label">训练状态</div>
+          </div>
+          <div class="metric-ring">
+            <svg viewBox="0 0 80 80" width="80" height="80">
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#1e293b" stroke-width="8"/>
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#10b981" stroke-width="8"
+                stroke-dasharray="172" stroke-dashoffset="24" stroke-linecap="round"
+                transform="rotate(-90 40 40)"/>
+            </svg>
+            <div class="ring-value">86%</div>
+            <div class="ring-label">恢复状态</div>
+          </div>
+          <div class="metric-ring">
+            <svg viewBox="0 0 80 80" width="80" height="80">
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#1e293b" stroke-width="8"/>
+              <circle cx="40" cy="40" r="32" fill="none" stroke="#f59e0b" stroke-width="8"
+                stroke-dasharray="172" stroke-dashoffset="52" stroke-linecap="round"
+                transform="rotate(-90 40 40)"/>
+            </svg>
+            <div class="ring-value">70%</div>
+            <div class="ring-label">睡眠质量</div>
+          </div>
+        </div>
+        <div class="garmin-sync">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          上次同步：5 分钟前 · Garmin Forerunner 965
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PROFILE PAGE ===== -->
+  <div class="page" id="page-profile">
+    <div class="page-header">
+      <div>
+        <h1>健康档案</h1>
+        <p class="page-subtitle">完善你的身体信息，AI 将为你制定更精准的计划</p>
+      </div>
+      <button class="btn-primary" onclick="saveProfile()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+        保存档案
+      </button>
+    </div>
+
+    <div class="profile-grid">
+      <!-- Basic Info -->
+      <div class="card">
+        <div class="card-header"><h3>基本信息</h3></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>姓名</label>
+            <input type="text" class="form-input" value="张明" />
+          </div>
+          <div class="form-group">
+            <label>年龄</label>
+            <input type="number" class="form-input" value="32" />
+          </div>
+          <div class="form-group">
+            <label>性别</label>
+            <select class="form-input">
+              <option selected>男</option>
+              <option>女</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>身高 (cm)</label>
+            <input type="number" class="form-input" value="175" />
+          </div>
+          <div class="form-group">
+            <label>体重 (kg)</label>
+            <input type="number" class="form-input" value="72" />
+          </div>
+          <div class="form-group">
+            <label>BMI</label>
+            <input type="text" class="form-input" value="23.5" readonly style="background:#1e293b;color:#94a3b8" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Fitness Level -->
+      <div class="card">
+        <div class="card-header"><h3>运动水平 & 目标</h3></div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>当前运动水平</label>
+            <div class="level-selector">
+              <div class="level-option" onclick="selectLevel(this,'beginner')">
+                <div class="level-icon">🌱</div>
+                <div class="level-name">入门</div>
+                <div class="level-desc">运动经验 < 6个月</div>
+              </div>
+              <div class="level-option active" onclick="selectLevel(this,'intermediate')">
+                <div class="level-icon">⚡</div>
+                <div class="level-name">中级</div>
+                <div class="level-desc">规律运动 1-2年</div>
+              </div>
+              <div class="level-option" onclick="selectLevel(this,'advanced')">
+                <div class="level-icon">🏆</div>
+                <div class="level-name">高级</div>
+                <div class="level-desc">系统训练 3年+</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label>训练目标（可多选）</label>
+            <div class="tag-selector" id="goalTags">
+              <div class="tag active" onclick="toggleTag(this)">减脂塑形</div>
+              <div class="tag active" onclick="toggleTag(this)">提升耐力</div>
+              <div class="tag" onclick="toggleTag(this)">增肌力量</div>
+              <div class="tag" onclick="toggleTag(this)">备战比赛</div>
+              <div class="tag" onclick="toggleTag(this)">健康维护</div>
+              <div class="tag" onclick="toggleTag(this)">压力减压</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>每周可训练天数</label>
+            <select class="form-input">
+              <option>2天</option>
+              <option>3天</option>
+              <option selected>4天</option>
+              <option>5天</option>
+              <option>6天</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>每次训练时长</label>
+            <select class="form-input">
+              <option>30分钟</option>
+              <option selected>45分钟</option>
+              <option>60分钟</option>
+              <option>90分钟</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Health Data -->
+      <div class="card">
+        <div class="card-header"><h3>健康指标</h3></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>静息心率 (bpm)</label>
+            <input type="number" class="form-input" value="58" />
+          </div>
+          <div class="form-group">
+            <label>最大心率 (bpm)</label>
+            <input type="number" class="form-input" value="188" placeholder="220 - 年龄" />
+          </div>
+          <div class="form-group">
+            <label>VO₂Max (预估)</label>
+            <input type="number" class="form-input" value="46" />
+          </div>
+          <div class="form-group">
+            <label>体脂率 (%)</label>
+            <input type="number" class="form-input" value="18" />
+          </div>
+          <div class="form-group full">
+            <label>健康注意事项 / 禁忌</label>
+            <textarea class="form-input" rows="3" placeholder="如：膝盖旧伤、高血压、腰椎问题等...">轻度膝关节不适，避免下坡跑步</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sport Preferences -->
+      <div class="card">
+        <div class="card-header"><h3>运动偏好</h3></div>
+        <div class="sport-prefs">
+          <div class="sport-pref-item">
+            <div class="sport-pref-header">
+              <div class="sport-icon run-icon">🏃</div>
+              <div>
+                <div class="sport-name">跑步</div>
+                <div class="sport-level-text">当前配速：5:30/km</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked /><span class="slider"></span></label>
+            </div>
+            <div class="intensity-slider-wrap">
+              <span>强度偏好</span>
+              <input type="range" min="1" max="5" value="3" class="intensity-range" oninput="updateIntensity(this)" />
+              <span class="intensity-label">中等</span>
+            </div>
+          </div>
+          <div class="sport-pref-item">
+            <div class="sport-pref-header">
+              <div class="sport-icon bike-icon">🚴</div>
+              <div>
+                <div class="sport-name">骑行</div>
+                <div class="sport-level-text">功率：180W</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked /><span class="slider"></span></label>
+            </div>
+            <div class="intensity-slider-wrap">
+              <span>强度偏好</span>
+              <input type="range" min="1" max="5" value="3" class="intensity-range" oninput="updateIntensity(this)" />
+              <span class="intensity-label">中等</span>
+            </div>
+          </div>
+          <div class="sport-pref-item">
+            <div class="sport-pref-header">
+              <div class="sport-icon swim-icon">🏊</div>
+              <div>
+                <div class="sport-name">游泳</div>
+                <div class="sport-level-text">配速：2:10/100m</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked /><span class="slider"></span></label>
+            </div>
+            <div class="intensity-slider-wrap">
+              <span>强度偏好</span>
+              <input type="range" min="1" max="5" value="2" class="intensity-range" oninput="updateIntensity(this)" />
+              <span class="intensity-label">轻松</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PLAN PAGE ===== -->
+  <div class="page" id="page-plan">
+    <div class="page-header">
+      <div>
+        <h1>训练计划</h1>
+        <p class="page-subtitle">AI 根据你的身体状况生成的个性化 4 周计划</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary" onclick="generatePlan()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="m12 8 4 4-4 4"/><path d="M8 12h8"/></svg>
+          重新生成
+        </button>
+        <button class="btn-primary" onclick="showPlanDetail()">
+          查看详情
+        </button>
+      </div>
+    </div>
+
+    <!-- Plan Summary -->
+    <div class="plan-summary-bar">
+      <div class="plan-tag">🎯 目标：耐力提升 + 减脂</div>
+      <div class="plan-tag">📅 周期：4 周</div>
+      <div class="plan-tag">⚡ 强度：渐进式</div>
+      <div class="plan-tag">🏃 主项：跑步 / 骑行 / 游泳</div>
+      <div class="ai-generated-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+        AI 生成
+      </div>
+    </div>
+
+    <!-- Week Tabs -->
+    <div class="week-tabs">
+      <button class="week-tab active" onclick="switchWeek(this,1)">第1周 <span>适应期</span></button>
+      <button class="week-tab" onclick="switchWeek(this,2)">第2周 <span>建立期</span></button>
+      <button class="week-tab" onclick="switchWeek(this,3)">第3周 <span>强化期</span></button>
+      <button class="week-tab" onclick="switchWeek(this,4)">第4周 <span>巩固期</span></button>
+    </div>
+
+    <!-- Plan Calendar -->
+    <div class="plan-calendar" id="planCalendar">
+      <!-- Week 1 -->
+      <div class="plan-week active" id="week-1">
+        <div class="plan-day">
+          <div class="plan-day-header"><span class="day-name">周一</span><span class="day-date">3/18</span></div>
+          <div class="plan-session run">
+            <div class="session-icon">🏃</div>
+            <div class="session-info">
+              <div class="session-name">轻松跑</div>
+              <div class="session-detail">30min · Z2心率 · 5:50/km</div>
+            </div>
+            <div class="session-status done">✓</div>
+          </div>
+        </div>
+        <div class="plan-day">
+          <div class="plan-day-header"><span class="day-name">周二</span><span class="day-date">3/19</span></div>
+          <div class="plan-session bike">
+            <div class="session-icon">🚴</div>
+            <div class="session-info">
+              <div class="session-name">骑行恢复</div>
+              <div class="session-detail">45min · 低功率 · 140W</div>
+            </div>
+            <div class="session-status today-badge">今天</div>
+          </div>
+        </div>
+        <div class="plan-day">
+          <div class="plan-day-header"><span class="day-name">周三</span><span class="day-date">3/20</span></div>
+          <div class="plan-session rest">
+            <div class="session-icon">😴</div>
+            <div class="session-info">
+              <div class="session-name">主动恢复日</div>
+              <div class="session-detail">拉伸 + 泡沫轴 20min</div>
+            </div>
+            <div class="session-status rest-label">休息</div>
+          </div>
+        </div>
+        <div class="plan-day">
+          <div class="plan-day-header"><span class="day-name">周四</span><span class="day-date">3/21</span></div>
+          <div class="plan-session run">
+            <div class="session-icon">🏃</div>
+            <div class="session-info">
+              <div class="session-name">有氧跑</div>
+              <div class="session-detail">45min · Z2-Z3 · 5:30/km</div>
+            </div>
+            <div class="session-status pending-label">待完成</div>
+          </div>
+        </div>
+        <div class="plan-day">
+          <div class="plan-day-header"><span class="day-name">周五</span><span class="day-date">3/22</span></div>
+          <div class="plan-session swim">
+            <div class="session-icon">🏊</div>
+            <div class="session-info">
+              <div class="session-name">游泳耐力</div>
+              <div class="session-detail">40min · 混合泳 · 1500m</div>
+            </div>
+            <div class="session-status pending-label">待完成</div>
+          </div>
+        </div>
+        <div class="plan-day">
+          <div class="plan-day-header"><span class="day-name">周六</span><span class="day-date">3/23</span></div>
+          <div class="plan-session run">
+            <div class="session-icon">🏃</div>
+            <div class="session-info">
+              <div class="session-name">长距离跑</div>
+              <div class="session-detail">60min · Z2 · 6:00/km</div>
+            </div>
+            <div class="session-status pending-label">待完成</div>
+          </div>
+        </div>
+        <div class="plan-day">
+          <div class="plan-day-header"><span class="day-name">周日</span><span class="day-date">3/24</span></div>
+          <div class="plan-session rest">
+            <div class="session-icon">😴</div>
+            <div class="session-info">
+              <div class="session-name">完全休息</div>
+              <div class="session-detail">充分恢复</div>
+            </div>
+            <div class="session-status rest-label">休息</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Plan Note -->
+    <div class="plan-ai-note">
+      <div class="plan-ai-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>
+      </div>
+      <div class="plan-ai-text">
+        <strong>AI 计划说明：</strong>本计划基于你的 VO₂Max 46、静息心率 58bpm 及膝关节轻微不适，采用80/20原则（80%低强度 + 20%高强度），首周以适应为主，避免下坡跑。每周训练量增幅控制在10%以内。
+      </div>
+      <button class="plan-adjust-btn" onclick="navigate('ai-chat')">调整计划</button>
+    </div>
+  </div>
+
+  <!-- ===== TODAY TRAINING PAGE ===== -->
+  <div class="page" id="page-today">
+    <div class="page-header">
+      <div>
+        <h1>今日训练</h1>
+        <p class="page-subtitle">骑行恢复 · 45分钟 · 3月19日</p>
+      </div>
+    </div>
+
+    <div class="today-grid">
+      <!-- Live Metrics -->
+      <div class="card live-metrics-card">
+        <div class="card-header">
+          <h3>实时运动数据</h3>
+          <div class="live-badge">
+            <span class="live-dot"></span>LIVE
+          </div>
+        </div>
+        <div class="live-grid">
+          <div class="live-metric">
+            <div class="live-value" id="liveHR">142</div>
+            <div class="live-unit">bpm</div>
+            <div class="live-label">心率</div>
+            <div class="live-zone" style="color:#6366f1">Z3 有氧</div>
+          </div>
+          <div class="live-metric">
+            <div class="live-value" id="livePace">5:28</div>
+            <div class="live-unit">/km</div>
+            <div class="live-label">当前配速</div>
+            <div class="live-zone" style="color:#10b981">目标 5:30</div>
+          </div>
+          <div class="live-metric">
+            <div class="live-value" id="liveDist">3.2</div>
+            <div class="live-unit">km</div>
+            <div class="live-label">已跑距离</div>
+            <div class="live-zone" style="color:#94a3b8">目标 8km</div>
+          </div>
+          <div class="live-metric">
+            <div class="live-value" id="liveTime">18:32</div>
+            <div class="live-unit"></div>
+            <div class="live-label">训练时长</div>
+            <div class="live-zone" style="color:#94a3b8">目标 45min</div>
+          </div>
+          <div class="live-metric">
+            <div class="live-value" id="liveCal">187</div>
+            <div class="live-unit">kcal</div>
+            <div class="live-label">消耗热量</div>
+            <div class="live-zone" style="color:#f59e0b">目标 400</div>
+          </div>
+          <div class="live-metric">
+            <div class="live-value" id="liveCadence">172</div>
+            <div class="live-unit">spm</div>
+            <div class="live-label">步频</div>
+            <div class="live-zone" style="color:#10b981">良好</div>
+          </div>
+        </div>
+
+        <!-- Heart Rate Zone Bar -->
+        <div class="hr-zone-display">
+          <div class="hr-zone-title">心率区间</div>
+          <div class="hr-zones-bar">
+            <div class="hr-zone-seg" style="background:#60a5fa;width:15%">Z1</div>
+            <div class="hr-zone-seg" style="background:#34d399;width:20%">Z2</div>
+            <div class="hr-zone-seg active-zone" style="background:#6366f1;width:30%">Z3 ◀</div>
+            <div class="hr-zone-seg" style="background:#f59e0b;width:20%">Z4</div>
+            <div class="hr-zone-seg" style="background:#ef4444;width:15%">Z5</div>
+          </div>
+          <div class="hr-range-labels">
+            <span>&lt;115</span><span>115-130</span><span>130-150</span><span>150-165</span><span>&gt;165</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Realtime Advice -->
+      <div class="card realtime-advice-card">
+        <div class="card-header">
+          <h3>AI 实时建议</h3>
+        </div>
+        <div class="advice-list" id="realtimeAdvice">
+          <div class="advice-item green">
+            <div class="advice-icon">✓</div>
+            <div class="advice-text">配速正常，保持当前节奏</div>
+          </div>
+          <div class="advice-item yellow">
+            <div class="advice-icon">⚠</div>
+            <div class="advice-text">心率略高于目标区间，可适当放慢5-10秒/km</div>
+          </div>
+          <div class="advice-item blue">
+            <div class="advice-icon">💧</div>
+            <div class="advice-text">已训练18分钟，建议补水</div>
+          </div>
+          <div class="advice-item purple">
+            <div class="advice-icon">📊</div>
+            <div class="advice-text">步频172spm，建议维持在170-180之间</div>
+          </div>
+        </div>
+
+        <div class="training-phases">
+          <div class="phase-title">训练阶段进度</div>
+          <div class="phase-item done-phase">
+            <div class="phase-dot done-dot"></div>
+            <div class="phase-info">
+              <span class="phase-name">热身</span>
+              <span class="phase-dur">10min</span>
+            </div>
+            <div class="phase-check">✓</div>
+          </div>
+          <div class="phase-item active-phase">
+            <div class="phase-dot active-dot"></div>
+            <div class="phase-info">
+              <span class="phase-name">有氧主体</span>
+              <span class="phase-dur">25min <em>(进行中 8:32)</em></span>
+            </div>
+          </div>
+          <div class="phase-item">
+            <div class="phase-dot"></div>
+            <div class="phase-info">
+              <span class="phase-name">放松拉伸</span>
+              <span class="phase-dur">10min</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="training-controls">
+          <button class="ctrl-btn pause" onclick="pauseTraining()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            暂停
+          </button>
+          <button class="ctrl-btn stop" onclick="stopTraining()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+            结束
+          </button>
+          <button class="ctrl-btn adjust" onclick="adjustIntensity()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+            调整强度
+          </button>
+        </div>
+      </div>
+
+      <!-- Intensity Adjust Panel -->
+      <div class="card intensity-adjust-card" id="intensityPanel" style="display:none">
+        <div class="card-header">
+          <h3>强度调整建议</h3>
+          <span class="badge badge-warning">AI 建议</span>
+        </div>
+        <div class="intensity-options">
+          <div class="intensity-opt" onclick="applyIntensity(this,'降低10%')">
+            <div class="opt-icon" style="color:#10b981">▼</div>
+            <div class="opt-info">
+              <div class="opt-name">降低 10%</div>
+              <div class="opt-desc">配速调整至 5:45/km · 心率降至130 bpm</div>
+            </div>
+          </div>
+          <div class="intensity-opt active-opt" onclick="applyIntensity(this,'保持现状')">
+            <div class="opt-icon" style="color:#6366f1">●</div>
+            <div class="opt-info">
+              <div class="opt-name">保持现状</div>
+              <div class="opt-desc">继续当前配速 5:28/km</div>
+            </div>
+          </div>
+          <div class="intensity-opt" onclick="applyIntensity(this,'提高10%')">
+            <div class="opt-icon" style="color:#f59e0b">▲</div>
+            <div class="opt-info">
+              <div class="opt-name">提高 10%</div>
+              <div class="opt-desc">配速调整至 5:10/km · 心率升至155 bpm</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ANALYSIS PAGE ===== -->
+  <div class="page" id="page-analysis">
+    <div class="page-header">
+      <div>
+        <h1>数据分析</h1>
+        <p class="page-subtitle">训练趋势 · 能力评估 · 恢复状态</p>
+      </div>
+      <div class="time-range-selector">
+        <button class="range-btn active" onclick="selectRange(this,'7d')">7天</button>
+        <button class="range-btn" onclick="selectRange(this,'30d')">30天</button>
+        <button class="range-btn" onclick="selectRange(this,'90d')">90天</button>
+      </div>
+    </div>
+
+    <div class="analysis-grid">
+      <!-- Training Load Chart -->
+      <div class="card chart-card">
+        <div class="card-header">
+          <h3>训练负荷趋势</h3>
+          <div class="chart-legend">
+            <span class="legend-dot" style="background:#6366f1"></span>实际
+            <span class="legend-dot" style="background:#06b6d4"></span>计划
+          </div>
+        </div>
+        <div class="chart-area" id="loadChart">
+          <canvas id="loadCanvas" width="600" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Heart Rate Zones Distribution -->
+      <div class="card chart-card">
+        <div class="card-header">
+          <h3>心率区间分布（本周）</h3>
+        </div>
+        <div class="hr-zone-stats">
+          <div class="zone-stat-item">
+            <div class="zone-stat-bar" style="background:#60a5fa">
+              <div class="zone-stat-fill" style="width:8%"></div>
+            </div>
+            <div class="zone-stat-info"><span>Z1 轻松</span><span>8%</span></div>
+          </div>
+          <div class="zone-stat-item">
+            <div class="zone-stat-bar" style="background:#34d399">
+              <div class="zone-stat-fill" style="width:52%"></div>
+            </div>
+            <div class="zone-stat-info"><span>Z2 有氧</span><span>52%</span></div>
+          </div>
+          <div class="zone-stat-item">
+            <div class="zone-stat-bar" style="background:#6366f1">
+              <div class="zone-stat-fill" style="width:28%"></div>
+            </div>
+            <div class="zone-stat-info"><span>Z3 阈值</span><span>28%</span></div>
+          </div>
+          <div class="zone-stat-item">
+            <div class="zone-stat-bar" style="background:#f59e0b">
+              <div class="zone-stat-fill" style="width:10%"></div>
+            </div>
+            <div class="zone-stat-info"><span>Z4 无氧</span><span>10%</span></div>
+          </div>
+          <div class="zone-stat-item">
+            <div class="zone-stat-bar" style="background:#ef4444">
+              <div class="zone-stat-fill" style="width:2%"></div>
+            </div>
+            <div class="zone-stat-info"><span>Z5 极限</span><span>2%</span></div>
+          </div>
+        </div>
+        <div class="zone-advice">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          80/20 建议：Z2比例稍低，本周可适当增加一次低强度长跑
+        </div>
+      </div>
+
+      <!-- Ability Radar -->
+      <div class="card radar-card">
+        <div class="card-header">
+          <h3>能力雷达图</h3>
+        </div>
+        <div class="radar-wrap">
+          <svg id="radarSvg" viewBox="0 0 300 300" width="260" height="260"></svg>
+          <div class="radar-labels">
+            <div class="radar-legend-item"><span style="background:#6366f1"></span>当前水平</div>
+            <div class="radar-legend-item"><span style="background:#06b6d4;opacity:.5"></span>目标水平</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance Summary -->
+      <div class="card perf-card">
+        <div class="card-header"><h3>近期表现评估</h3></div>
+        <div class="perf-list">
+          <div class="perf-item">
+            <div class="perf-icon">🏃</div>
+            <div class="perf-info">
+              <div class="perf-name">跑步配速</div>
+              <div class="perf-bar-wrap">
+                <div class="perf-bar" style="width:72%;background:#6366f1"></div>
+              </div>
+            </div>
+            <div class="perf-val">5:28/km <span class="trend-up">↑</span></div>
+          </div>
+          <div class="perf-item">
+            <div class="perf-icon">🚴</div>
+            <div class="perf-info">
+              <div class="perf-name">骑行功率</div>
+              <div class="perf-bar-wrap">
+                <div class="perf-bar" style="width:60%;background:#06b6d4"></div>
+              </div>
+            </div>
+            <div class="perf-val">183W <span class="trend-up">↑</span></div>
+          </div>
+          <div class="perf-item">
+            <div class="perf-icon">🏊</div>
+            <div class="perf-info">
+              <div class="perf-name">游泳配速</div>
+              <div class="perf-bar-wrap">
+                <div class="perf-bar" style="width:55%;background:#10b981"></div>
+              </div>
+            </div>
+            <div class="perf-val">2:08/100m <span class="trend-up">↑</span></div>
+          </div>
+          <div class="perf-item">
+            <div class="perf-icon">❤️</div>
+            <div class="perf-info">
+              <div class="perf-name">有氧能力 (VO₂Max)</div>
+              <div class="perf-bar-wrap">
+                <div class="perf-bar" style="width:80%;background:#f59e0b"></div>
+              </div>
+            </div>
+            <div class="perf-val">46 ml/kg <span class="trend-up">↑</span></div>
+          </div>
+        </div>
+        <div class="ai-insight">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="color:#6366f1"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+          过去30天跑步配速提升约 4%，VO₂Max 提升 1.5，继续保持当前训练强度，预计8周后可达到高级水平。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GARMIN PAGE ===== -->
+  <div class="page" id="page-garmin">
+    <div class="page-header">
+      <div>
+        <h1>Garmin 设备管理</h1>
+        <p class="page-subtitle">连接运动手表，自动同步训练数据</p>
+      </div>
+    </div>
+
+    <div class="garmin-grid">
+      <!-- Device Status -->
+      <div class="card device-card">
+        <div class="device-status-header">
+          <div class="device-img">
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+              <rect x="16" y="4" width="32" height="56" rx="16" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+              <circle cx="32" cy="32" r="18" fill="#0f172a" stroke="#6366f1" stroke-width="1.5"/>
+              <circle cx="32" cy="32" r="14" fill="#1e293b"/>
+              <text x="32" y="29" text-anchor="middle" fill="#6366f1" font-size="7" font-weight="bold">GARMIN</text>
+              <text x="32" y="39" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="bold">965</text>
+              <circle cx="32" cy="32" r="3" fill="#6366f1"/>
+            </svg>
+          </div>
+          <div class="device-info-wrap">
+            <div class="device-name">Garmin Forerunner 965</div>
+            <div class="device-model">序列号：G965-XXXX-1234</div>
+            <div class="device-connected">
+              <span class="conn-dot"></span>已连接
+            </div>
+          </div>
+          <button class="btn-sync" onclick="syncGarmin()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            立即同步
+          </button>
+        </div>
+
+        <div class="device-stats-row">
+          <div class="device-stat">
+            <div class="d-stat-label">电量</div>
+            <div class="d-stat-val">
+              <div class="battery-bar"><div class="battery-fill" style="width:72%"></div></div>
+              72%
+            </div>
+          </div>
+          <div class="device-stat">
+            <div class="d-stat-label">上次同步</div>
+            <div class="d-stat-val">5 分钟前</div>
+          </div>
+          <div class="device-stat">
+            <div class="d-stat-label">固件版本</div>
+            <div class="d-stat-val">18.24</div>
+          </div>
+          <div class="device-stat">
+            <div class="d-stat-label">连接方式</div>
+            <div class="d-stat-val">Garmin Connect API</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sync Data -->
+      <div class="card sync-data-card">
+        <div class="card-header"><h3>今日同步数据</h3></div>
+        <div class="sync-metrics">
+          <div class="sync-item">
+            <div class="sync-icon" style="background:#1e3a5f">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+            </div>
+            <div class="sync-label">HRV</div>
+            <div class="sync-val">54 ms</div>
+            <div class="sync-status good">良好</div>
+          </div>
+          <div class="sync-item">
+            <div class="sync-icon" style="background:#1a2e1a">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div class="sync-label">睡眠评分</div>
+            <div class="sync-val">74 分</div>
+            <div class="sync-status ok">一般</div>
+          </div>
+          <div class="sync-item">
+            <div class="sync-icon" style="background:#2d1a3d">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <div class="sync-label">训练状态</div>
+            <div class="sync-val">高峰</div>
+            <div class="sync-status good">最佳</div>
+          </div>
+          <div class="sync-item">
+            <div class="sync-icon" style="background:#2d200a">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </div>
+            <div class="sync-label">压力指数</div>
+            <div class="sync-val">32</div>
+            <div class="sync-status good">低压</div>
+          </div>
+          <div class="sync-item">
+            <div class="sync-icon" style="background:#1f2937">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e2e8f0" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="sync-label">身体电量</div>
+            <div class="sync-val">86%</div>
+            <div class="sync-status good">充沛</div>
+          </div>
+          <div class="sync-item">
+            <div class="sync-icon" style="background:#1a1a2e">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </div>
+            <div class="sync-label">恢复时间建议</div>
+            <div class="sync-val">14h</div>
+            <div class="sync-status ok">正常</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activities -->
+      <div class="card activities-card">
+        <div class="card-header"><h3>近期活动记录</h3></div>
+        <div class="activities-list">
+          <div class="activity-item">
+            <div class="act-icon run-icon-sm">🏃</div>
+            <div class="act-info">
+              <div class="act-name">跑步 · 周一</div>
+              <div class="act-meta">40min · 6.8km · 141bpm 均心率</div>
+            </div>
+            <div class="act-score">
+              <div class="score-val">82</div>
+              <div class="score-label">训练分</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="act-icon bike-icon-sm">🚴</div>
+            <div class="act-info">
+              <div class="act-name">骑行 · 周二</div>
+              <div class="act-meta">35min · 15.2km · 135bpm 均心率</div>
+            </div>
+            <div class="act-score">
+              <div class="score-val">75</div>
+              <div class="score-label">训练分</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="act-icon swim-icon-sm">🏊</div>
+            <div class="act-info">
+              <div class="act-name">游泳 · 周四</div>
+              <div class="act-meta">45min · 1800m · 148bpm 均心率</div>
+            </div>
+            <div class="act-score">
+              <div class="score-val">88</div>
+              <div class="score-label">训练分</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Config -->
+      <div class="card api-card">
+        <div class="card-header"><h3>Garmin Connect API 配置</h3></div>
+        <div class="api-config">
+          <div class="api-status-banner">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+            API 已授权连接
+          </div>
+          <div class="form-group" style="margin-top:16px">
+            <label>Consumer Key</label>
+            <input type="password" class="form-input" value="••••••••••••••••" />
+          </div>
+          <div class="form-group">
+            <label>Consumer Secret</label>
+            <input type="password" class="form-input" value="••••••••••••••••" />
+          </div>
+          <div class="form-group">
+            <label>同步频率</label>
+            <select class="form-input">
+              <option>每5分钟</option>
+              <option selected>每15分钟</option>
+              <option>每小时</option>
+              <option>手动同步</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>同步数据类型</label>
+            <div class="tag-selector">
+              <div class="tag active">心率</div>
+              <div class="tag active">HRV</div>
+              <div class="tag active">睡眠</div>
+              <div class="tag active">活动记录</div>
+              <div class="tag active">压力</div>
+              <div class="tag">GPS 轨迹</div>
+            </div>
+          </div>
+          <button class="btn-primary" style="width:100%;margin-top:8px">保存配置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== AI CHAT PAGE ===== -->
+  <div class="page" id="page-ai-chat">
+    <div class="page-header">
+      <div>
+        <h1>AI 教练对话</h1>
+        <p class="page-subtitle">随时问教练任何运动相关问题</p>
+      </div>
+    </div>
+
+    <div class="chat-layout">
+      <div class="chat-main">
+        <div class="chat-messages" id="chatMessages">
+          <!-- AI Welcome -->
+          <div class="chat-msg ai-msg-chat">
+            <div class="chat-avatar ai-chat-avatar">AI</div>
+            <div class="chat-bubble ai-chat-bubble">
+              <p>你好！我是你的 AI 私人运动教练 👋</p>
+              <p>我已经分析了你的 Garmin 数据和历史训练记录，随时可以为你提供个性化建议。</p>
+              <p>你可以问我：<br>· 如何调整训练计划？<br>· 膝盖不舒服怎么办？<br>· 怎么提高跑步配速？<br>· 今天适不适合训练？</p>
+            </div>
+          </div>
+          <!-- Quick Prompts -->
+          <div class="quick-prompts">
+            <div class="qp-title">快速提问</div>
+            <div class="qp-buttons">
+              <button class="qp-btn" onclick="sendQuickPrompt('今天的身体状态适合训练吗？')">今天适合训练吗？</button>
+              <button class="qp-btn" onclick="sendQuickPrompt('帮我分析本周的训练数据')">分析本周数据</button>
+              <button class="qp-btn" onclick="sendQuickPrompt('我的膝盖有点不舒服，今天应该怎么训练？')">膝盖不适怎么办</button>
+              <button class="qp-btn" onclick="sendQuickPrompt('帮我制定一个为期8周的跑步提速计划')">制定提速计划</button>
+              <button class="qp-btn" onclick="sendQuickPrompt('我想参加半程马拉松，怎么备赛？')">备赛半马</button>
+              <button class="qp-btn" onclick="sendQuickPrompt('今天训练后应该怎么恢复？')">训练后恢复建议</button>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <div class="chat-input-wrap">
+            <input type="text" class="chat-text-input" id="chatInput" placeholder="向 AI 教练提问..." onkeydown="handleChatInput(event)" />
+            <button class="chat-send" onclick="sendChat()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+            </button>
+          </div>
+          <div class="chat-disclaimer">AI 建议仅供参考，如有严重不适请咨询医生</div>
+        </div>
+      </div>
+
+      <!-- Chat Sidebar -->
+      <div class="chat-sidebar-panel">
+        <div class="card">
+          <div class="card-header"><h3>今日身体概况</h3></div>
+          <div class="chat-body-summary">
+            <div class="cbs-item"><span>恢复状态</span><strong style="color:#10b981">86% · 良好</strong></div>
+            <div class="cbs-item"><span>HRV</span><strong>54 ms</strong></div>
+            <div class="cbs-item"><span>睡眠</span><strong style="color:#f59e0b">74分 · 一般</strong></div>
+            <div class="cbs-item"><span>压力指数</span><strong style="color:#10b981">32 · 低</strong></div>
+            <div class="cbs-item"><span>累计训练负荷</span><strong>中等</strong></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <div class="card-header"><h3>本周计划进度</h3></div>
+          <div class="plan-progress-mini">
+            <div class="ppm-item done-ppm">周一 · 跑步 ✓</div>
+            <div class="ppm-item done-ppm">周二 · 骑行 ✓</div>
+            <div class="ppm-item rest-ppm">周三 · 休息</div>
+            <div class="ppm-item done-ppm">周四 · 游泳 ✓</div>
+            <div class="ppm-item today-ppm">今天 · 跑步 →</div>
+            <div class="ppm-item pending-ppm">周六 · 骑行</div>
+            <div class="ppm-item rest-ppm">周日 · 休息</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast Notification -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+<script src="test-script.js"></script>
+</body>
+</html>
