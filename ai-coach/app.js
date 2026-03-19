@@ -288,18 +288,18 @@ function fillProfileForm() {
   const inputs = document.querySelectorAll('#page-profile .form-input');
 
   inputs.forEach(input => {
-    const label = input.previousElementSibling?.textContent;
-    const value = input.value;
+    const label = input.previousElementSibling?.textContent?.trim();
+    if (!label) return;
 
-    // 根据标签填充对应的 UserProfile 数据
-    if (label === '姓名') input.value = UserProfile.name;
-    if (label === '年龄') input.value = UserProfile.age;
-    if (label === '身高') input.value = UserProfile.height;
-    if (label === '体重') input.value = UserProfile.weight;
-    if (label === '静息心率') input.value = UserProfile.restHR;
-    if (label === '最大心率') input.value = UserProfile.maxHR;
-    if (label === 'VO₂Max (预估)') input.value = UserProfile.vo2max;
-    if (label === '体脂率 (%)') input.value = UserProfile.bodyFat;
+    // 根据标签填充对应的 UserProfile 数据（使用 includes 匹配部分文本）
+    if (label.includes('姓名')) input.value = UserProfile.name;
+    if (label.includes('年龄')) input.value = UserProfile.age;
+    if (label.includes('身高')) input.value = UserProfile.height;
+    if (label.includes('体重')) input.value = UserProfile.weight;
+    if (label.includes('静息心率')) input.value = UserProfile.restHR;
+    if (label.includes('最大心率')) input.value = UserProfile.maxHR;
+    if (label.includes('VO₂Max')) input.value = UserProfile.vo2max;
+    if (label.includes('体脂率')) input.value = UserProfile.bodyFat;
     if (label.includes('注意事项')) input.value = UserProfile.healthNotes;
   });
 
