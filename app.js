@@ -32,13 +32,19 @@ const UserProfile = {
 
 // Garmin 同步数据
 const GarminData = {
-  hrv: 54,
-  sleepScore: 74,
-  stressLevel: 32,
-  bodyBattery: 86,
+  hrv: null,
+  sleepScore: null,
+  stressLevel: null,
+  bodyBattery: null,
+  totalSteps: null,
+  activeCalories: null,
+  totalDistance: null,
+  restingHR: null,
   recoveryAdvisor: 14,   // 建议恢复时间(h)
-  trainingStatus: '高峰',
-  lastSync: new Date(),
+  trainingStatus: null,
+  lastSync: null,
+  dataDate: null,
+  activities: [],  // 活动列表
 };
 
 // ─────────────────────────────────────────
@@ -779,11 +785,26 @@ async function syncGarmin() {
       if (data.data.bodyBattery !== null) GarminData.bodyBattery = data.data.bodyBattery;
       if (data.data.stressLevel !== null) GarminData.stressLevel = data.data.stressLevel;
 
+      // 新增字段
+      if (data.data.totalSteps !== null) GarminData.totalSteps = data.data.totalSteps;
+      if (data.data.activeCalories !== null) GarminData.activeCalories = data.data.activeCalories;
+      if (data.data.totalDistance !== null) GarminData.totalDistance = data.data.totalDistance;
+      if (data.data.restingHR !== null) GarminData.restingHR = data.data.restingHR;
+
       GarminData.lastSync = new Date(data.lastSync);
+      GarminData.dataDate = data.dataDate || new Date().toISOString().split('T')[0];
+
+      console.log('✓ Garmin 数据已更新:', GarminData);
+
+      // 获取活动列表
+      await fetchActivities();
 
       // 更新 UI 显示
       updateGarminUI();
-      showToast(`✓ Garmin 数据同步完成！更新了 ${data.data.activitiesCount} 条活动记录`);
+      const message = data.data.activitiesCount > 0
+        ? `✓ Garmin 数据同步完成！更新了 ${data.data.activitiesCount} 条活动记录`
+        : '✓ Garmin 数据同步完成，但暂无新数据';
+      showToast(message);
     } else {
       throw new Error(data.error || '同步失败');
     }
@@ -799,6 +820,102 @@ async function syncGarmin() {
   }
 }
 
+async function fetchActivities() {
+  try {
+    const response = await fetch(`${GARMIN_API_BASE}/api/garmin/activities?limit=10`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.success && data.activities) {
+      GarminData.activities = data.activities;
+      updateActivitiesList(data.activities);
+      updateWeeklyProgress();
+    }
+  } catch (error) {
+    console.error('获取活动列表失败:', error);
+  }
+}
+
+function updateActivitiesList(activities) {
+  const container = document.getElementById('activitiesList');
+  if (!container) return;
+
+  if (activities.length === 0) {
+    container.innerHTML = `
+      <div class="activity-item">
+        <div class="act-icon run-icon-sm">🏃</div>
+        <div class="act-info">
+          <div class="act-name">暂无活动数据</div>
+          <div class="act-meta">请点击"立即同步"获取最新数据</div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // 根据活动类型映射图标
+  const typeIcons = {
+    'running': '🏃',
+    'cycling': '🚴',
+    'swimming': '🏊',
+    'walking': '🚶',
+    'strength_training': '💪',
+    'yoga': '🧘'
+  };
+
+  container.innerHTML = activities.slice(0, 3).map(act => {
+    const icon = typeIcons[act.type] || '🏃';
+    const duration = Math.round(act.duration);
+    const distance = act.distance ? act.distance.toFixed(1) : '--';
+    const avgHR = act.avgHeartRate ? Math.round(act.avgHeartRate) : '--';
+    const date = act.startTime ? new Date(act.startTime).toLocaleDateString('zh-CN', { weekday: 'short' }) : '';
+
+    return `
+      <div class="activity-item">
+        <div class="act-icon run-icon-sm">${icon}</div>
+        <div class="act-info">
+          <div class="act-name">${act.name || act.type} · ${date}</div>
+          <div class="act-meta">${duration}min · ${distance}km · ${avgHR}bpm 均心率</div>
+        </div>
+        <div class="act-score">
+          <div class="score-val">${Math.round(act.calories || 0)}</div>
+          <div class="score-label">kcal</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateWeeklyProgress() {
+  const completedEl = document.getElementById('weekCompleted');
+  const rateEl = document.getElementById('weekRate');
+
+  if (!completedEl || !rateEl) return;
+
+  // 计算本周的活动次数（从获取到的活动中筛选）
+  const today = new Date();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay()); // 周日作为一周的开始
+  weekStart.setHours(0, 0, 0, 0);
+
+  const thisWeekActivities = (GarminData.activities || []).filter(act => {
+    const actDate = new Date(act.startTime);
+    return actDate >= weekStart;
+  });
+
+  const completedCount = thisWeekActivities.length;
+  const targetCount = 5;
+  const rate = Math.round((completedCount / targetCount) * 100);
+
+  completedEl.textContent = completedCount;
+  rateEl.textContent = rate + '%';
+}
+
 function updateGarminUI() {
   // 更新 Garmin 页面的数据显示
   const hrvEl = document.getElementById('garminHRV');
@@ -807,41 +924,88 @@ function updateGarminUI() {
   const stressEl = document.getElementById('garminStress');
   const lastSyncEl = document.getElementById('lastSyncTime');
 
-  // 更新数值
-  if (hrvEl) hrvEl.textContent = GarminData.hrv + ' ms';
-  if (sleepEl) sleepEl.textContent = GarminData.sleepScore + ' 分';
-  if (batteryEl) batteryEl.textContent = GarminData.bodyBattery + '%';
-  if (stressEl) stressEl.textContent = GarminData.stressLevel;
+  // 更新数值（处理 null 值）
+  if (hrvEl) hrvEl.textContent = GarminData.hrv !== null ? GarminData.hrv + ' ms' : '暂无数据';
+  if (sleepEl) sleepEl.textContent = GarminData.sleepScore !== null ? GarminData.sleepScore + ' 分' : '暂无数据';
+  if (batteryEl) batteryEl.textContent = GarminData.bodyBattery !== null ? GarminData.bodyBattery + '%' : '暂无数据';
+  if (stressEl) stressEl.textContent = GarminData.stressLevel !== null ? GarminData.stressLevel : '暂无数据';
   if (lastSyncEl) lastSyncEl.textContent = formatLastSync(GarminData.lastSync);
 
-  // 更新状态标签和颜色
-  updateStatusElement('hrvStatus', GarminData.hrv, {
-    good: GarminData.hrv >= 50,
-    ok: GarminData.hrv >= 45,
-    warn: GarminData.hrv < 45,
-    labels: { good: '优秀', ok: '良好', warn: '偏低' }
-  });
+  // 更新状态标签和颜色（只在有数据时更新）
+  if (GarminData.hrv !== null) {
+    updateStatusElement('hrvStatus', GarminData.hrv, {
+      good: GarminData.hrv >= 50,
+      ok: GarminData.hrv >= 45,
+      warn: GarminData.hrv < 45,
+      labels: { good: '优秀', ok: '良好', warn: '偏低' }
+    });
+  }
 
-  updateStatusElement('sleepStatus', GarminData.sleepScore, {
-    good: GarminData.sleepScore >= 80,
-    ok: GarminData.sleepScore >= 65,
-    warn: GarminData.sleepScore < 65,
-    labels: { good: '充足', ok: '一般', warn: '不足' }
-  });
+  if (GarminData.sleepScore !== null) {
+    updateStatusElement('sleepStatus', GarminData.sleepScore, {
+      good: GarminData.sleepScore >= 80,
+      ok: GarminData.sleepScore >= 65,
+      warn: GarminData.sleepScore < 65,
+      labels: { good: '充足', ok: '一般', warn: '不足' }
+    });
+  }
 
-  updateStatusElement('batteryStatus', GarminData.bodyBattery, {
-    good: GarminData.bodyBattery >= 75,
-    ok: GarminData.bodyBattery >= 50,
-    warn: GarminData.bodyBattery < 50,
-    labels: { good: '充沛', ok: '尚可', warn: '不足' }
-  });
+  if (GarminData.bodyBattery !== null) {
+    updateStatusElement('batteryStatus', GarminData.bodyBattery, {
+      good: GarminData.bodyBattery >= 75,
+      ok: GarminData.bodyBattery >= 50,
+      warn: GarminData.bodyBattery < 50,
+      labels: { good: '充沛', ok: '尚可', warn: '不足' }
+    });
+  }
 
-  updateStatusElement('stressStatus', GarminData.stressLevel, {
-    good: GarminData.stressLevel <= 25,
-    ok: GarminData.stressLevel <= 50,
-    warn: GarminData.stressLevel > 50,
-    labels: { good: '低压', ok: '适中', warn: '高压' }
-  });
+  if (GarminData.stressLevel !== null) {
+    updateStatusElement('stressStatus', GarminData.stressLevel, {
+      good: GarminData.stressLevel <= 25,
+      ok: GarminData.stressLevel <= 50,
+      warn: GarminData.stressLevel > 50,
+      labels: { good: '低压', ok: '适中', warn: '高压' }
+    });
+  }
+
+  // 更新新增的字段
+  const caloriesEl = document.getElementById('garminCalories');
+  const distanceEl = document.getElementById('garminDistance');
+  const stepsEl = document.getElementById('garminSteps');
+  const restHREl = document.getElementById('garminRestHR');
+
+  if (caloriesEl) caloriesEl.textContent = GarminData.activeCalories !== null ? GarminData.activeCalories : '--';
+  if (distanceEl) distanceEl.textContent = GarminData.totalDistance !== null ? GarminData.totalDistance + ' km' : '--';
+  if (stepsEl) stepsEl.textContent = GarminData.totalSteps !== null ? GarminData.totalSteps.toLocaleString() : '--';
+  if (restHREl) restHREl.textContent = GarminData.restingHR !== null ? GarminData.restingHR + ' bpm' : '--';
+
+  // 更新首页仪表盘数据
+  const dashCalories = document.getElementById('dashCalories');
+  const dashDistance = document.getElementById('dashDistance');
+  const dashHR = document.getElementById('dashHR');
+  const dashSteps = document.getElementById('dashSteps');
+  const dashLastSync = document.getElementById('dashLastSync');
+  const dashTrainingStatus = document.getElementById('dashTrainingStatus');
+  const dashRecovery = document.getElementById('dashRecovery');
+  const dashSleep = document.getElementById('dashSleep');
+
+  if (dashCalories) dashCalories.innerHTML = GarminData.activeCalories !== null ? `${GarminData.activeCalories} <span>kcal</span>` : '-- <span>kcal</span>';
+  if (dashDistance) dashDistance.innerHTML = GarminData.totalDistance !== null ? `${GarminData.totalDistance} <span>km</span>` : '-- <span>km</span>';
+  if (dashHR) dashHR.innerHTML = GarminData.restingHR !== null ? `${GarminData.restingHR} <span>bpm</span>` : '-- <span>bpm</span>';
+  if (dashSteps) dashSteps.textContent = GarminData.totalSteps !== null ? GarminData.totalSteps.toLocaleString() : '--';
+  if (dashLastSync) dashLastSync.textContent = formatLastSync(GarminData.lastSync);
+  if (dashTrainingStatus) dashTrainingStatus.textContent = GarminData.trainingStatus || '--';
+  if (dashRecovery) {
+    const value = GarminData.bodyBattery !== null ? GarminData.bodyBattery : '--';
+    dashRecovery.textContent = value !== '--' ? value + '%' : value;
+  }
+  if (dashSleep) {
+    const value = GarminData.sleepScore !== null ? GarminData.sleepScore : '--';
+    dashSleep.textContent = value !== '--' ? value + '分' : value;
+  }
+
+  // 更新本周训练完成情况
+  updateWeeklyProgress();
 }
 
 function updateStatusElement(elementId, value, thresholds) {
@@ -1023,8 +1187,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 初始化健康档案表单
   setTimeout(() => fillProfileForm(), 50);
 
-  // 初始化 Garmin UI
-  setTimeout(() => updateGarminUI(), 50);
+  // 自动同步 Garmin 数据
+  setTimeout(() => {
+    syncGarmin();
+  }, 500);
 
   // 渲染雷达图
   setTimeout(() => drawRadarChart(), 100);
@@ -1035,7 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (active && active.id === 'page-analysis') drawLoadChart();
   });
 
-  showToast('FitCoach AI 已就绪，已同步 Garmin 数据 🏃');
+  showToast('FitCoach AI 已就绪，正在同步 Garmin 数据...');
 });
 
 // ─────────────────────────────────────────

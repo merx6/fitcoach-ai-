@@ -2,12 +2,31 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import os
 from urllib.parse import urlparse, parse_qs
-import asyncio
 from garminconnect import Garmin
+
+# 加载 .env 文件
+def load_env():
+    env_file = os.path.join(os.path.dirname(__file__), '.env')
+    print(f"[SERVER] Loading .env from: {env_file}")
+    if os.path.exists(env_file):
+        with open(env_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    if key not in os.environ:
+                        os.environ[key.strip()] = value.strip()
+        print(f"[SERVER] .env loaded successfully")
+    else:
+        print(f"[SERVER] WARNING: .env file not found at {env_file}")
+
+load_env()
 
 # Garmin 认证配置 - 从环境变量读取
 GARMIN_EMAIL = os.environ.get("GARMIN_EMAIL", "")
 GARMIN_PASSWORD = os.environ.get("GARMIN_PASSWORD", "")
+print(f"[SERVER] GARMIN_EMAIL: {GARMIN_EMAIL}")
+print(f"[SERVER] GARMIN_PASSWORD: {'*' * len(GARMIN_PASSWORD) if GARMIN_PASSWORD else 'NOT SET'}")
 
 # 缓存 Garmin 客户端实例（生产环境应该使用数据库或 Redis）
 garmin_client = None
@@ -83,62 +102,118 @@ class GarminAPIHandler(BaseHTTPRequestHandler):
                 garmin_client = Garmin(GARMIN_EMAIL, GARMIN_PASSWORD)
                 # 登录获取 token
                 garmin_client.login()
-                print("✓ Garmin 登录成功")
+                print("[SUCCESS] Garmin login successful")
             except Exception as e:
-                print(f"✗ Garmin 登录失败: {e}")
+                print(f"[ERROR] Garmin login failed: {e}")
                 garmin_client = None
 
         return garmin_client
 
     def _handle_garmin_sync(self):
         """同步 Garmin 数据"""
+        print("[SYNC] Starting Garmin sync...")
         client = self._init_garmin_client()
         if not client:
+            print("[SYNC] Error: Garmin client not initialized")
             self._send_error("Garmin 未配置或登录失败，请检查环境变量")
             return
 
         try:
+            print("[SYNC] Getting user profile...")
             # 获取用户资料
             user_profile = client.get_user_profile()
+            print(f"[SYNC] User profile: {user_profile.get('fullName', 'Unknown')}")
 
             # 获取今日数据
             from datetime import datetime, timedelta
             today = datetime.now().strftime("%Y-%m-%d")
-            yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
-            # 并发获取多个数据源
+            # 获取活动数据
+            print("[SYNC] Getting activities...")
             activities = client.get_activities(0, 10)  # 最近10次活动
-            hrv_data = client.get_hrv_data(yesterday, today)
-            sleep_data = client.get_sleep_data(today)
-            body_battery = client.get_body_battery(today)
-            stress_data = client.get_stress_data(yesterday, today)
+            print(f"[SYNC] Activities: {len(activities) if activities else 0}")
+
+            # 使用 get_user_summary 获取今日数据
+            print("[SYNC] Getting daily summary...")
+            summary = client.get_user_summary(today)
+            print(f"[SYNC] Summary keys: {list(summary.keys()) if summary else 'None'}")
+
+            # 获取最近的完整数据（今天可能没有完整数据）
+            recent_data_date = today
+            recent_summary = summary
+
+            # 如果今天没有完整数据，尝试获取活动日期的数据
+            if not summary or not (summary.get('includesWellnessData') or summary.get('includesActivityData')):
+                if activities:
+                    latest_activity = activities[0]
+                    activity_date_str = latest_activity.get('startTimeLocal', '')
+                    if activity_date_str:
+                        recent_data_date = activity_date_str.split(' ')[0]
+                        print(f"[SYNC] Trying activity date: {recent_data_date}")
+                        recent_summary = client.get_user_summary(recent_data_date)
 
             # 提取关键数据
-            latest_hrv = self._extract_latest_hrv(hrv_data) if hrv_data else None
-            sleep_score = self._extract_sleep_score(sleep_data) if sleep_data else None
-            latest_body_battery = self._extract_body_battery(body_battery) if body_battery else None
-            avg_stress = self._extract_avg_stress(stress_data) if stress_data else None
+            print(f"[SYNC] Extracting data from {recent_data_date}")
+
+            # 从 user_summary 中提取数据
+            hrv_value = None  # HRV 数据可能在单独的 API 中
+            sleep_score = None  # 睡眠数据需要从 sleep API 获取
+            body_battery = recent_summary.get('bodyBatteryMostRecentValue') if recent_summary else None
+            stress_level = recent_summary.get('averageStressLevel') if recent_summary else None
+
+            # 尝试获取睡眠数据
+            try:
+                sleep_data = client.get_sleep_data(recent_data_date)
+                if sleep_data and 'dailySleepDTO' in sleep_data:
+                    sleep_score = sleep_data['dailySleepDTO'].get('sleepScore')
+            except:
+                pass
+
+            # 尝试获取 HRV 数据
+            try:
+                hrv_data = client.get_hrv_data(recent_data_date)
+                if hrv_data and isinstance(hrv_data, dict):
+                    hrv_value = hrv_data.get('lastNightAvg') if 'lastNightAvg' in hrv_data else None
+            except:
+                pass
+
+            # 其他有用的数据
+            total_steps = recent_summary.get('totalSteps') if recent_summary else None
+            active_calories = recent_summary.get('activeKilocalories') if recent_summary else None
+            total_distance = recent_summary.get('totalDistanceMeters') if recent_summary else None
+            resting_hr = recent_summary.get('restingHeartRate') if recent_summary else None
 
             response_data = {
                 "success": True,
                 "lastSync": datetime.now().isoformat(),
+                "dataDate": recent_data_date,
                 "user": {
                     "name": user_profile.get("fullName", "Unknown"),
                     "displayName": user_profile.get("displayName", "Unknown"),
                 },
                 "data": {
-                    "hrv": latest_hrv,
+                    "hrv": hrv_value,
                     "sleepScore": sleep_score,
-                    "bodyBattery": latest_body_battery,
-                    "stressLevel": avg_stress,
+                    "bodyBattery": body_battery,
+                    "stressLevel": stress_level,
+                    "totalSteps": total_steps,
+                    "activeCalories": active_calories,
+                    "totalDistance": round(total_distance / 1000, 2) if total_distance else None,  # 转换为公里
+                    "restingHR": resting_hr,
                     "activitiesCount": len(activities) if activities else 0,
                 }
             }
 
+            print("[SYNC] Sync completed successfully")
+            print(f"[SYNC] Body Battery: {body_battery}")
+            print(f"[SYNC] Stress Level: {stress_level}")
+            print(f"[SYNC] Total Steps: {total_steps}")
             self._send_json_response(response_data)
 
         except Exception as e:
-            print(f"同步数据失败: {e}")
+            print(f"[SYNC] Error: {e}")
+            import traceback
+            traceback.print_exc()
             self._send_error(f"同步失败: {str(e)}", 500)
 
     def _handle_garmin_status(self, query_params):
@@ -149,17 +224,16 @@ class GarminAPIHandler(BaseHTTPRequestHandler):
             return
 
         try:
-            from datetime import datetime
+            from datetime import datetime, timedelta
 
             today = datetime.now().strftime("%Y-%m-%d")
-            yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
             # 获取设备信息
             devices = client.get_devices()
 
             # 获取今日健康数据
             steps_data = client.get_steps_data(today)
-            heart_rate = client.get_heart_rates(yesterday, today)
+            heart_rate = client.get_heart_rates(today, today)
             body_battery = client.get_body_battery(today)
 
             response = {
@@ -222,11 +296,10 @@ class GarminAPIHandler(BaseHTTPRequestHandler):
             return
 
         try:
-            from datetime import datetime, timedelta
+            from datetime import datetime
             today = datetime.now().strftime("%Y-%m-%d")
-            yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
 
-            hrv_data = client.get_hrv_data(yesterday, today)
+            hrv_data = client.get_hrv_data(today)
             latest_hrv = self._extract_latest_hrv(hrv_data) if hrv_data else None
 
             self._send_json_response({
@@ -295,15 +368,22 @@ class GarminAPIHandler(BaseHTTPRequestHandler):
 
     def _extract_body_battery(self, body_battery_data):
         """从身体电量数据中提取最新值"""
-        if not body_battery_data or not isinstance(body_battery_data, dict):
+        if not body_battery_data:
             return None
 
-        # 可能的格式
-        if "bodyBatteryValue" in body_battery_data:
-            return body_battery_data["bodyBatteryValue"]
+        # body_battery_data 是一个列表
+        if isinstance(body_battery_data, list):
+            if body_battery_data:
+                # 返回最新的身体电量值
+                return body_battery_data[-1].get("bodyBatteryValue") if isinstance(body_battery_data[-1], dict) else body_battery_data[-1]
+            return None
 
-        if "lastBodyBattery" in body_battery_data:
-            return body_battery_data["lastBodyBattery"]
+        # 如果是字典格式（旧版本兼容）
+        if isinstance(body_battery_data, dict):
+            if "bodyBatteryValue" in body_battery_data:
+                return body_battery_data["bodyBatteryValue"]
+            if "lastBodyBattery" in body_battery_data:
+                return body_battery_data["lastBodyBattery"]
 
         return None
 
@@ -333,8 +413,8 @@ def run_server(port=3000):
     print(f"\n{'='*50}")
     print(f"FitCoach Garmin API Server")
     print(f"{'='*50}")
-    print(f"📡 Server running on http://localhost:{port}")
-    print(f"🔍 API endpoints:")
+    print(f"[SERVER] Running on http://localhost:{port}")
+    print(f"[API] Endpoints:")
     print(f"   - GET /api/health")
     print(f"   - GET /api/garmin/sync")
     print(f"   - GET /api/garmin/status")

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Garmin API 测试</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #1e293b; color: #e2e8f0; }
+    .card { background: #334155; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    button { padding: 10px 20px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #4f46e5; }
+    pre { background: #1e293b; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    .success { color: #22c55e; }
+    .error { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <h1>Garmin API 测试页面</h1>
+  
+  <div class="card">
+    <h2>API 同步测试</h2>
+    <button onclick="testSync()">测试同步 API</button>
+    <button onclick="testActivities()">测试活动列表 API</button>
+  </div>
+
+  <div class="card">
+    <h2>响应数据</h2>
+    <pre id="output">点击按钮测试 API...</pre>
+  </div>
+
+  <div class="card">
+    <h2>当前 GarminData</h2>
+    <pre id="garminData">尚未加载数据</pre>
+  </div>
+
+  <script>
+    const GARMIN_API_BASE = 'http://localhost:3000';
+
+    async function testSync() {
+      const output = document.getElementById('output');
+      output.innerHTML = '<span class="success">正在调用 /api/garmin/sync...</span>\n';
+      
+      try {
+        const response = await fetch(`${GARMIN_API_BASE}/api/garmin/sync`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        output.innerHTML = '<span class="success">✓ 同步成功!</span>\n\n';
+        output.innerHTML += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        
+        // 更新 GarminData
+        if (data.success && data.data) {
+          window.GarminData = {
+            hrv: data.data.hrv,
+            sleepScore: data.data.sleepScore,
+            bodyBattery: data.data.bodyBattery,
+            stressLevel: data.data.stressLevel,
+            totalSteps: data.data.totalSteps,
+            activeCalories: data.data.activeCalories,
+            totalDistance: data.data.totalDistance,
+            restingHR: data.data.restingHR,
+            lastSync: new Date(data.lastSync),
+            dataDate: data.dataDate
+          };
+          
+          document.getElementById('garminData').innerHTML = '<pre>' + JSON.stringify(window.GarminData, null, 2) + '</pre>';
+        }
+      } catch (error) {
+        output.innerHTML = '<span class="error">✗ 错误: ' + error.message + '</span>';
+      }
+    }
+
+    async function testActivities() {
+      const output = document.getElementById('output');
+      output.innerHTML = '<span class="success">正在调用 /api/garmin/activities...</span>\n';
+      
+      try {
+        const response = await fetch(`${GARMIN_API_BASE}/api/garmin/activities?limit=5`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        output.innerHTML = '<span class="success">✓ 获取活动成功!</span>\n\n';
+        output.innerHTML += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+      } catch (error) {
+        output.innerHTML = '<span class="error">✗ 错误: ' + error.message + '</span>';
+      }
+    }
+  </script>
+</body>
+</html>
