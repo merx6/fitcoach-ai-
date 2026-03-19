@@ -277,11 +277,76 @@ function navigate(page) {
   if (page === 'analysis') initAnalysisCharts();
   if (page === 'today') startLiveDataSimulation();
   if (page === 'dashboard') initRadar();
+  if (page === 'profile') fillProfileForm();
 }
 
 // ─────────────────────────────────────────
 // 5. 健康档案交互
 // ─────────────────────────────────────────
+function fillProfileForm() {
+  // 填充基本信息输入框
+  const inputs = document.querySelectorAll('#page-profile .form-input');
+
+  inputs.forEach(input => {
+    const label = input.previousElementSibling?.textContent;
+    const value = input.value;
+
+    // 根据标签填充对应的 UserProfile 数据
+    if (label === '姓名') input.value = UserProfile.name;
+    if (label === '年龄') input.value = UserProfile.age;
+    if (label === '身高') input.value = UserProfile.height;
+    if (label === '体重') input.value = UserProfile.weight;
+    if (label === '静息心率') input.value = UserProfile.restHR;
+    if (label === '最大心率') input.value = UserProfile.maxHR;
+    if (label === 'VO₂Max (预估)') input.value = UserProfile.vo2max;
+    if (label === '体脂率 (%)') input.value = UserProfile.bodyFat;
+    if (label.includes('注意事项')) input.value = UserProfile.healthNotes;
+  });
+
+  // 更新训练目标标签
+  document.querySelectorAll('#goalTags .tag').forEach(tag => {
+    const text = tag.textContent.trim();
+    tag.classList.remove('active');
+
+    if (text === '减脂塑形' && UserProfile.goals.includes('fat_loss')) tag.classList.add('active');
+    if (text === '提升耐力' && UserProfile.goals.includes('endurance')) tag.classList.add('active');
+    if (text === '增肌力量' && UserProfile.goals.includes('strength')) tag.classList.add('active');
+    if (text === '备战比赛' && UserProfile.goals.includes('competition')) tag.classList.add('active');
+    if (text === '健康维护' && UserProfile.goals.includes('health')) tag.classList.add('active');
+    if (text === '压力减压' && UserProfile.goals.includes('stress_relief')) tag.classList.add('active');
+  });
+
+  // 更新运动级别选择器
+  document.querySelectorAll('.level-option').forEach(option => {
+    option.classList.remove('active');
+    if (option.dataset.level === UserProfile.fitnessLevel) {
+      option.classList.add('active');
+    }
+  });
+
+  // 更新运动偏好（复选框和滑杆）
+  const sportPrefItems = document.querySelectorAll('.sport-pref-item');
+  const sports = ['running', 'cycling', 'swimming'];
+
+  sportPrefItems.forEach((item, index) => {
+    if (index >= sports.length) return;
+    const sport = sports[index];
+    const checkbox = item.querySelector('input[type="checkbox"]');
+    const range = item.querySelector('.intensity-range');
+
+    if (UserProfile.sports[sport]) {
+      if (checkbox) checkbox.checked = UserProfile.sports[sport].enabled;
+      if (range) {
+        range.value = UserProfile.sports[sport].intensity;
+        // 触发 input 事件更新标签
+        range.dispatchEvent(new Event('input'));
+      }
+    }
+  });
+
+  console.log('健康档案表单已填充:', UserProfile);
+}
+
 function selectLevel(el, level) {
   document.querySelectorAll('.level-option').forEach(o => o.classList.remove('active'));
   el.classList.add('active');
@@ -841,6 +906,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 初始化用户信息显示
   setTimeout(() => updateAllUserInfo(), 50);
+
+  // 初始化健康档案表单
+  setTimeout(() => fillProfileForm(), 50);
 
   // 渲染雷达图
   setTimeout(() => drawRadarChart(), 100);
