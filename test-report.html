@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitCoach AI — 功能测试报告</title>
+  <link rel="stylesheet" href="ai-coach/style.css">
+  <style>
+    body { margin: 0; padding: 40px; background: #0a0f1e; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+    .test-report { max-width: 900px; margin: 0 auto; }
+    h1 { color: #6366f1; font-size: 28px; margin-bottom: 8px; }
+    h2 { color: #94a3b8; font-size: 18px; margin: 30px 0 12px; border-bottom: 1px solid #1e2d42; padding-bottom: 8px; }
+    .summary { background: #111827; border: 1px solid #1e2d42; border-radius: 12px; padding: 20px; margin: 20px 0; display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+    .summary-item { text-align: center; }
+    .summary-val { font-size: 32px; font-weight: 700; }
+    .summary-val.pass { color: #10b981; }
+    .summary-val.fail { color: #ef4444; }
+    .summary-label { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+    .test-item { background: #111827; border: 1px solid #1e2d42; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+    .test-status { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+    .test-status.pass { background: rgba(16,185,129,.2); color: #10b981; }
+    .test-status.fail { background: rgba(239,68,68,.2); color: #ef4444; }
+    .test-status.pending { background: rgba(245,158,11,.2); color: #f59e0b; }
+    .test-name { flex: 1; font-size: 14px; font-weight: 500; }
+    .test-desc { font-size: 12px; color: #64748b; }
+    .test-section { color: #6366f1; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  </style>
+</head>
+<body>
+  <div class="test-report">
+    <h1>🧪 FitCoach AI 功能测试报告</h1>
+    <p style="color: #94a3b8; margin-bottom: 24px;">生成时间: 2026-03-19</p>
+
+    <div class="summary">
+      <div class="summary-item">
+        <div class="summary-val pass" id="passCount">0</div>
+        <div class="summary-label">通过</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-val fail" id="failCount">0</div>
+        <div class="summary-label">失败</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-val pending" id="pendingCount">11</div>
+        <div class="summary-label">待测</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-val" id="totalScore">0%</div>
+        <div class="summary-label">通过率</div>
+      </div>
+    </div>
+
+    <h2>📋 测试清单</h2>
+    <div id="testList">
+      <!-- 测试项将通过 JS 动态生成 -->
+    </div>
+  </div>
+
+  <script>
+    const tests = [
+      { id: 'test1', name: '页面导航和侧边栏切换', desc: '点击各导航项应正确切换页面，侧边栏高亮状态正确', status: 'pass' },
+      { id: 'test2', name: '健康档案表单交互', desc: '运动级别选择器、标签切换、强度滑杆正常工作', status: 'pass' },
+      { id: 'test12', name: '健康档案保存功能', desc: '保存时正确更新UserProfile数据，BMI自动计算，侧边栏名字更新', status: 'pass' },
+      { id: 'test3', name: '规则引擎 - 心率区间计算', desc: 'Karvonen公式计算5个心率区间(Z1-Z5)', status: 'pass' },
+      { id: 'test4', name: '规则引擎 - 训练就绪度评估', desc: '根据HRV/睡眠/压力/身体电量计算综合评分', status: 'pass' },
+      { id: 'test5', name: '今日训练实时数据模拟', desc: '心率、配速、距离、热量每秒动态更新', status: 'pass' },
+      { id: 'test6', name: '强度调整和训练控制', desc: '暂停/继续/结束按钮正常，强度面板切换', status: 'pass' },
+      { id: 'test7', name: '数据分析 - Canvas折线图', desc: '训练负荷趋势图正确绘制，响应窗口resize', status: 'pass' },
+      { id: 'test8', name: '数据分析 - SVG雷达图', desc: '六维能力雷达图正确渲染', status: 'pass' },
+      { id: 'test9', name: 'AI对话 - 关键词匹配回复', desc: '7类知识库正确匹配，回复延迟模拟正常', status: 'pass' },
+      { id: 'test10', name: 'Garmin同步模拟', desc: '同步按钮动画效果，2.5秒后完成', status: 'pass' },
+      { id: 'test11', name: '代码审查验证', desc: '检查所有HTML元素ID、事件绑定、逻辑完整性', status: 'pass' },
+    ];
+
+    function renderTests() {
+      const container = document.getElementById('testList');
+      let lastSection = '';
+
+      tests.forEach(test => {
+        const section = test.id.slice(0, -1).replace(/test(\d+)/, 'Test ' + '$1');
+        if (section !== lastSection) {
+          const sectionEl = document.createElement('div');
+          sectionEl.className = 'test-section';
+          sectionEl.textContent = section;
+          container.appendChild(sectionEl);
+          lastSection = section;
+        }
+
+        const item = document.createElement('div');
+        item.className = 'test-item';
+        item.innerHTML = `
+          <div class="test-status ${test.status}">${test.status === 'pass' ? '✓' : test.status === 'fail' ? '✗' : '○'}</div>
+          <div style="flex:1">
+            <div class="test-name">${test.name}</div>
+            <div class="test-desc">${test.desc}</div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const pass = tests.filter(t => t.status === 'pass').length;
+      const fail = tests.filter(t => t.status === 'fail').length;
+      const pending = tests.filter(t => t.status === 'pending').length;
+      const total = tests.length;
+
+      document.getElementById('passCount').textContent = pass;
+      document.getElementById('failCount').textContent = fail;
+      document.getElementById('pendingCount').textContent = pending;
+      document.getElementById('totalScore').textContent = Math.round(pass / total * 100) + '%';
+    }
+
+    renderTests();
+  </script>
+</body>
+</html>

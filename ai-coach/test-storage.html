@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>本地存储测试</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+    .test-box { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+    button { padding: 10px 20px; cursor: pointer; margin: 5px; }
+    input { padding: 8px; margin: 5px 0; }
+    .success { color: green; }
+    .error { color: red; }
+    .info { color: blue; }
+  </style>
+</head>
+<body>
+  <h1>本地存储测试工具</h1>
+
+  <div class="test-box">
+    <h2>保存测试</h2>
+    <label>姓名：<input type="text" id="nameInput" placeholder="输入姓名"></label>
+    <br>
+    <button onclick="saveTest()">保存数据</button>
+    <button onclick="clearTest()">清空数据</button>
+    <p id="saveResult"></p>
+  </div>
+
+  <div class="test-box">
+    <h2>加载测试</h2>
+    <button onclick="loadTest()">加载数据</button>
+    <p id="loadResult"></p>
+  </div>
+
+  <div class="test-box">
+    <h2>当前存储内容</h2>
+    <button onclick="showStorage()">显示存储内容</button>
+    <pre id="storageContent" style="background: #f5f5f5; padding: 10px; overflow-x: auto;"></pre>
+  </div>
+
+  <script>
+    function saveTest() {
+      const name = document.getElementById('nameInput').value;
+      if (!name) {
+        document.getElementById('saveResult').innerHTML = '<span class="error">请输入姓名</span>';
+        return;
+      }
+
+      const data = {
+        name: name,
+        timestamp: Date.now()
+      };
+
+      try {
+        localStorage.setItem('test_data', JSON.stringify(data));
+        document.getElementById('saveResult').innerHTML = `<span class="success">保存成功：${name}</span>`;
+      } catch (error) {
+        document.getElementById('saveResult').innerHTML = `<span class="error">保存失败：${error.message}</span>`;
+      }
+    }
+
+    function loadTest() {
+      try {
+        const saved = localStorage.getItem('test_data');
+        if (saved) {
+          const data = JSON.parse(saved);
+          const saveTime = new Date(data.timestamp).toLocaleString('zh-CN');
+          document.getElementById('loadResult').innerHTML = `<span class="success">加载成功：${data.name} (保存时间: ${saveTime})</span>`;
+          document.getElementById('nameInput').value = data.name;
+        } else {
+          document.getElementById('loadResult').innerHTML = '<span class="info">没有找到保存的数据</span>';
+        }
+      } catch (error) {
+        document.getElementById('loadResult').innerHTML = `<span class="error">加载失败：${error.message}</span>`;
+      }
+    }
+
+    function clearTest() {
+      localStorage.removeItem('test_data');
+      document.getElementById('saveResult').innerHTML = '<span class="info">数据已清空</span>';
+      document.getElementById('loadResult').innerHTML = '';
+      document.getElementById('storageContent').textContent = '';
+    }
+
+    function showStorage() {
+      try {
+        const test = localStorage.getItem('test_data');
+        const fitcoach = localStorage.getItem('fitcoach_data');
+
+        let content = '';
+        if (test) {
+          const data = JSON.parse(test);
+          content += 'test_data:\n' + JSON.stringify(data, null, 2) + '\n\n';
+        } else {
+          content += 'test_data: (无)\n\n';
+        }
+
+        if (fitcoach) {
+          const data = JSON.parse(fitcoach);
+          content += 'fitcoach_data:\n' + JSON.stringify(data, null, 2);
+        } else {
+          content += 'fitcoach_data: (无)';
+        }
+
+        document.getElementById('storageContent').textContent = content;
+      } catch (error) {
+        document.getElementById('storageContent').textContent = '读取失败：' + error.message;
+      }
+    }
+
+    // 页面加载时自动显示存储内容
+    window.addEventListener('load', showStorage);
+  </script>
+</body>
+</html>
