@@ -404,6 +404,9 @@ function saveProfile() {
   console.log('新心率区间:', zones);
   console.log('训练就绪度:', readiness);
 
+  // 保存到本地存储
+  saveToLocalStorage();
+
   // 全局更新所有页面的用户信息（名字、头像等）
   updateAllUserInfo();
 
@@ -819,8 +822,17 @@ function formatAIReply(text) {
 // 12. 初始化
 // ─────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // 先从本地存储加载数据
+  const loaded = loadFromLocalStorage();
+  if (loaded) {
+    console.log('已加载本地保存的数据');
+  } else {
+    console.log('使用默认数据');
+  }
+
   // 初始化心率区间
   const zones = RuleEngine.calcHeartRateZones(UserProfile.restHR, UserProfile.maxHR);
+  AICoach.zones = zones;
   console.log('心率区间:', zones);
 
   // 初始化训练状态评估
@@ -853,30 +865,71 @@ function toggleMobileMenu() {
 }
 
 // ─────────────────────────────────────────
-// 14. 全局更新用户信息
+// 14. 本地存储管理
+// ─────────────────────────────────────────
+function saveToLocalStorage() {
+  try {
+    const data = {
+      userProfile: UserProfile,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('fitcoach_data', JSON.stringify(data));
+    console.log('数据已保存到本地存储');
+  } catch (error) {
+    console.error('保存到本地存储失败:', error);
+  }
+}
+
+function loadFromLocalStorage() {
+  try {
+    const saved = localStorage.getItem('fitcoach_data');
+    if (saved) {
+      const data = JSON.parse(saved);
+      console.log('从本地存储加载数据:', data.userProfile);
+
+      // 合并保存的数据到 UserProfile
+      Object.assign(UserProfile, data.userProfile);
+
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('从本地存储加载失败:', error);
+    return false;
+  }
+}
+
+function clearLocalStorage() {
+  localStorage.removeItem('fitcoach_data');
+  console.log('本地存储已清空');
+  showToast('✓ 已重置为默认设置');
+}
+
+// ─────────────────────────────────────────
+// 15. 全局更新用户信息
 // ─────────────────────────────────────────
 function updateAllUserInfo() {
   const name = UserProfile.name;
   const avatarChar = name ? name.charAt(0).toUpperCase() : '张';
-  
+
   // 更新侧边栏头像和名字
   const userAvatar = document.querySelector('.user-avatar');
   const userName = document.querySelector('.user-name');
   if (userAvatar) userAvatar.textContent = avatarChar;
   if (userName) userName.textContent = name;
-  
+
   // 更新首页标题
   const dashboardTitle = document.querySelector('#page-dashboard h1');
   if (dashboardTitle) {
     dashboardTitle.textContent = `早上好，${name} 👋`;
   }
-  
+
   // 更新健康档案页面的姓名输入框
   const profileNameInput = document.querySelector('#page-profile input[placeholder="姓名"]');
   if (profileNameInput) {
     profileNameInput.value = name;
   }
-  
+
   console.log('用户信息已全局更新:', { name, avatar: avatarChar });
 }
 
